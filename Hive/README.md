@@ -34,11 +34,11 @@ All results are sorted descendent.
 ## Execution from terminal
 Script has been run with Hive CLI; after exporting the dataset to HDFS, the command run was ```source /home/cloudera/workspace/Hadoop/Hive/script.hql```.
 
-<img src="../pics/hive/cli.png" width="700">
+<img src="../pics/hive/cli.PNG" width="700">
 
 The script produced three outputs.
 
-<img src="../pics/hive/out.png" width="500">
+<img src="../pics/hive/out.PNG" width="500">
 
 
 
