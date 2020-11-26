@@ -162,20 +162,20 @@ Two different filters have been applied for Users:
 
 1. Users with Elite status for at least an year have been filtered out.
 
-<img src="..\pics\spark\elite.png" width="400"><br>
-<img src="..\pics\spark\elitedelete.png" width="500"><br>
+<img src="..\pics\spark\elite.PNG" width="400"><br>
+<img src="..\pics\spark\elitedelete.PNG" width="500"><br>
 
 2. Users with many reviews and without any review.
 
-<img src="..\pics\spark\user0delete.png" width="600"><br>
-<img src="..\pics\spark\user50delete.png" width="700"><br>
+<img src="..\pics\spark\user0delete.PNG" width="600"><br>
+<img src="..\pics\spark\user50delete.PNG" width="700"><br>
 
 Also, for the Users some features have been aggregated: attribytes such as useful, funny, cool, greetings and more, have been aggregated into _sum_of_reactions_ and _sum_of_compliments_.
 
 ### Text Review feature manipulation
 Given that the apporach chosen for the analysis is based on behavioral features, the content of the attribute _text_ for the reviews have been transformed: the interest is not in the actual words but on the length of the review. A new feature _text_length_ has been added to replace text.<br>
 
-<img src="..\pics\spark\length.png" width="500"><br>
+<img src="..\pics\spark\length.PNG" width="500"><br>
 
 
 ## 3.3 Spark analysis
@@ -239,15 +239,15 @@ val graphFrame = Neo4j(sc).nodes(nodesQuery,
   Map.empty).rels(relsQuery, Map.empty).loadGraphFrame
 ```
 
-<img src="..\pics\spark\diffdata.png" width="800"><br>
+<img src="..\pics\spark\diffdata.PNG" width="800"><br>
 
-<img src="..\pics\spark\risultato_spark_1.png" width="800"><br>
+<img src="..\pics\spark\risultato_spark_1.PNG" width="800"><br>
 
 Last step is to analyze the bussinesses whose the reviews are referring to; for example, two of the businesses belong to the same city Montreal. With a custom function the distance in kilometers between the two businesses was computed, showing us a distance of 9 kilometers and the possibility of a "rivalry". 
 
-<img src="..\pics\spark\fdist.png" width="600"><br>
+<img src="..\pics\spark\fdist.PNG" width="600"><br>
 
-<img src="..\pics\spark\distanza.png" width="800"><br>
+<img src="..\pics\spark\distanza.PNG" width="800"><br>
 
 
 ### First analysis on full dataset
