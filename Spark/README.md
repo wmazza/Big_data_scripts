@@ -94,7 +94,7 @@ For example, analyzing the CDF of users (in blue real users and in red spammers)
 - *Lenght of reviews*: even if from a linguistic point of view reviews are close, typically fake reviews contain less words than real ones. From data we observe that 80% of spammers is not going over 135 words, while real users in 92% go over 200 words. <br>
 <img src="..\pics\spark\cdf3.PNG" width="200"><br>
 
-- *Deviation from average rating*: fake reviews usually have as goal to improve the rating of a business; this means that often they have high deviation value from average ratings. We can observe that on average real users deviation is 0.6 for 70% of cases, while for spammers only the 20% is staying under an average deviation of 2.5.
+- *Deviation from average rating*: fake reviews usually have as goal to improve the rating of a business; this means that often they have high deviation value from average ratings. We can observe that on average real users deviation is 0.6 for 70% of cases, while for spammers only the 20% is staying under an average deviation of 2.5. <br>
 <img src="..\pics\spark\cdf4.PNG" width="200"><br>
 
 
