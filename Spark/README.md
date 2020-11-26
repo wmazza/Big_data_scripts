@@ -89,13 +89,13 @@ For example, analyzing the CDF of users (in blue real users and in red spammers)
 <img src="..\pics\spark\cdf1.png" width="200"><br>
 
 - *Percentage of positive reviews*: spammers have a percentage of good reviews much higher than real users; 85% of them have more than 80% of 4-5 stars reviews.<br>
-<img src="..\pics\spark\cdf2.png" width="200"><br>
+<img src="..\pics\spark\cdf2.PNG" width="200"><br>
 
 - *Lenght of reviews*: even if from a linguistic point of view reviews are close, typically fake reviews contain less words than real ones. From data we observe that 80% of spammers is not going over 135 words, while real users in 92% go over 200 words. <br>
-<img src="..\pics\spark\cdf3.png" width="200"><br>
+<img src="..\pics\spark\cdf3.PNG" width="200"><br>
 
 - *Deviation from average rating*: fake reviews usually have as goal to improve the rating of a business; this means that often they have high deviation value from average ratings. We can observe that on average real users deviation is 0.6 for 70% of cases, while for spammers only the 20% is staying under an average deviation of 2.5.
-<img src="..\pics\spark\cdf4.png" width="200"><br>
+<img src="..\pics\spark\cdf4.PNG" width="200"><br>
 
 
 ## 3. Spark implementation
@@ -146,7 +146,7 @@ MERGE (u)-[:FRIEND]-(u1)
 
 The function `apoc.periodic.iterate` processes a number of _batchSize_ JSON records per iteration. With the _SET_ is possible to explicitally choose which attributes to take when creating a node.
 
-<img src="..\pics\spark\datasetcompleto.png" width="400"><br>
+<img src="..\pics\spark\datasetcompleto.PNG" width="400"><br>
 
 ## 3.2 Data manipulation
 To reduce the dimension of dataset and focusing only on data of interest, some filtering has been applied on the data. In addition, some of the features have been transformed to better reflect some aspects the analysis is focusing on.
@@ -154,8 +154,8 @@ To reduce the dimension of dataset and focusing only on data of interest, some f
 ### Business filtering
 Filter is based on the feature _is_open_ that flags if a business is open or not.
 
-<img src="..\pics\spark\businesschiusi.png" width="500"><br>
-<img src="..\pics\spark\businessfilter.png" width="400"><br>
+<img src="..\pics\spark\businesschiusi.PNG" width="500"><br>
+<img src="..\pics\spark\businessfilter.PNG" width="400"><br>
 
 ### User filtering and aggregating
 Two different filters have been applied for Users:
