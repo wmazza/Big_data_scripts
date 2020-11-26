@@ -278,7 +278,7 @@ val graphFrame = Neo4j(sc).nodes(nodesQuery,
 
 We obtain a GraphFrame with only 7 users.
 
-<img src="../pics/spark/Analisi_2/Prima_Analisi.PNG" width="500"><br>
+<img src="../pics\spark\Analisi_2\Prima_Analisi.PNG" width="500"><br>
 
 We focus the analysis on the ones with newer subscription date (highlighted in yellow). 
 
@@ -350,7 +350,7 @@ val business_considered = business_consider.
 business_considered.show
 ```
 
-<img src="../pics/spark/Analisi_2/Analisi_Business.PNG" width="700"><br>
+<img src="../pics\spark\Analisi_2\Analisi_business.PNG" width="700"><br>
 
 A partial feedback about the spammers analysis can be found on some of the reviews of the users that were flagged on Yelp.
 
