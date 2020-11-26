@@ -239,6 +239,231 @@ val graphFrame = Neo4j(sc).nodes(nodesQuery,
   Map.empty).rels(relsQuery, Map.empty).loadGraphFrame
 ```
 
+<img src="../pics/spark/diffdata.png" width="800"><br>
+
 <img src="../pics/spark/risultato_spark_1.png" width="800"><br>
 
-Last step 
+Last step is to analyze the bussinesses whose the reviews are referring to; for example, two of the businesses belong to the same city Montreal. With a custom function the distance in kilometers between the two businesses was computed, showing us a distance of 9 kilometers and the possibility of a "rivalry". 
+
+<img src="../pics/spark/fdist.png" width="600"><br>
+
+<img src="../pics/spark/distanza.png" width="800"><br>
+
+
+### First analysis on full dataset
+The analysis set as goal to find fake reviews considering the values related to the users features:
+- review_count
+- average_stars
+- yelping_since
+
+Purpose is to focus on users with a significant number of reviews (> 30, based on previous indexes) and with average stars value extremely high, and that were fresh members on Yelp.
+
+
+```scala
+val nodesQuery = "MATCH (u:User)-[r3:WROTE]->
+  (w:Review)-[r2:REVIEWS]->(n:Business) 
+  WHERE u.review_count > 30 AND u.average_stars > 4.8 
+  AND u.yelping_since > '2017-01-01'
+  return distinct(u.id) as id, u.name as nome, 
+  u.average_stars as numero_medio_stelle, 
+  u.yelping_since as data_iscr "
+
+val relsQuery = "MATCH (u:User)-[r3:WROTE]->
+  (w:Review)-[r2:REVIEWS]->(n:Business) 
+  RETURN id(u) as src, id(n) as dst"
+
+val graphFrame = Neo4j(sc).nodes(nodesQuery, 
+  Map.empty).rels(relsQuery, Map.empty).loadGraphFrame
+```
+
+We obtain a GraphFrame with only 7 users.
+
+<img src="../pics/spark/Analisi_2/Prima_Analisi.PNG" width="500"><br>
+
+We focus the analysis on the ones with newer subscription date (highlighted in yellow). 
+
+```scala
+val nodesQuery = "MATCH (u:User)-[r3:WROTE]->
+  (w:Review)-[r2:REVIEWS]->(n:Business) 
+  WHERE u.review_count > 30 AND 
+  u.average_stars > 4.8 AND u.yelping_since > '2017-01-01'
+  return distinct(u.id) as id, u.name as nome, 
+  w.id as id_review, w.text_length as lunghezza_testo, 
+  w.date as data_review, n.name as nome_business, 
+  n.id as id_business" 
+
+val relsQuery = "MATCH (u:User)-[r3:WROTE]->
+  (w:Review)-[r2:REVIEWS]->(n:Business) 
+  RETURN id(u) as src, id(n) as dst"
+
+val graphFrame = Neo4j(sc).nodes(nodesQuery, Map.empty)
+  .rels(relsQuery, Map.empty).loadGraphFrame
+```
+
+We can notice that some users have more reviews in the same day (Peter and Chris). 
+
+<img src="../pics\spark\Analisi_2\Approfondimento_1.PNG" width="800"><br>
+
+We compute the reviews per day value for all of them, obtaining the following GraphFrame.
+
+```Scala
+val count = graphFrame.vertices.orderBy("nome").
+  groupBy($"nome", $"data_review").count
+```
+
+<img src="../pics\spark\Analisi_2\count_Recensioni_giornaliere.PNG" width="600"><br>
+
+Filtering on > 6, we obtain three users that have high number of reviews for a single day, with average vallue over 4.6 and more than 30 reviews.
+
+<img src="../pics\spark\Analisi_2\Probabili_spammer.PNG" width="400"><br>
+
+We then move to the bussinesses these users reviewed: by joining the GraphFrame for the spammers and the reviews.
+
+```Scala
+val df1 = graphFrame.vertices.select("id",
+   "nome", "id_review","lunghezza_testo", 
+   "data_review", "nome_business", "id_business")
+val joined = df1.join(spammers, 
+  Seq("nome", "data_review"), "inner")
+df1.show
+```
+
+<img src="../pics\spark\Analisi_2\Considero_solo_spammer_campi_associati.PNG" width="700"><br>
+
+We then create a new GraphFrame with the information on the bussiness.
+
+```Scala
+val nodesQuery = "MATCH (b:Business)-[r:IN_CATEGORY]->
+  (c:Category)  return id(b) as id, b.id as id_business,  
+  b.name as nome_business, b.review_count as numero_stelle, 
+  b.city as citta, b.latitude as latitudine, 
+  b.longitude as longitudine, b.stars as rating "
+val relsQuery = "MATCH (b:Business)-[r:IN_CATEGORY]->
+  (c:Category) RETURN id(b) as src, id(c) as dst"
+val graphFrame = Neo4j(sc).nodes(nodesQuery, Map.empty)
+  .rels(relsQuery, Map.empty).loadGraphFrame
+
+val business_considered = business_consider.
+  select("id_business","nome_business", "numero_stelle",
+  "citta", "latitudine", "longitudine", "rating" ).distinct
+
+business_considered.show
+```
+
+<img src="../pics\spark\Analisi_2\Analisi_Business.PNG" width="700"><br>
+
+A partial feedback about the spammers analysis can be found on some of the reviews of the users that were flagged on Yelp.
+
+<img src="../pics\spark\Analisi_2\Peter.PNG" width="500"><br>
+<img src="../pics\spark\Analisi_2\Chris.PNG" width="500"><br>
+
+
+### Seconda analisi sull'intero dataset
+Goal of the analysis is to find users with similar behavior to spammers found in the previous section, but with negative reviews.
+Starting point is again a GraphFrame with users having average_stars value low.
+
+```Scala
+val nodesQuery = "MATCH (u:User)-[r3:WROTE]->
+  (w:Review) WHERE u.review_count > 30 AND 
+  u.average_stars < 1.2 return distinct(u.id) as id,
+  u.name as nome, u.average_stars as numero_medio_stelle,
+  u.yelping_since as data_iscr "
+val relsQuery = "MATCH (u:User)-[r3:WROTE]->
+  (w:Review) RETURN id(u) as src, id(w) as dst"
+val graphFrame = Neo4j(sc).nodes(nodesQuery, Map.empty)
+  .rels(relsQuery, Map.empty).loadGraphFrame
+```
+
+We can see that there are 13 users with more than 30 reviews and a rating average close to 1.
+
+<img src="../pics\spark\Analisi_3\1.PNG" width="800"><br>
+	
+We decided to get from the database data of the reviews of users from this GraphFrame.
+
+```Scala
+val nodesQuery = "MATCH (u:User)-[r3:WROTE]->
+  (w:Review)-[r2:REVIEWS]->(n:Business) 
+  WHERE u.review_count > 30 AND u.average_stars < 1.2 
+  return distinct(u.id) as id, u.name as nome,
+  w.id as id_review, w.text_length as lunghezza_testo,
+  w.date as data_review, w.stars as stelle_recensione, 
+  n.name as nome_business, n.id as id_business" 
+val relsQuery = "MATCH (u:User)-[r3:WROTE]->
+  (w:Review)-[r2:REVIEWS]->(n:Business) 
+  RETURN id(u) as src, id(n) as dst"
+val graphFrame = Neo4j(sc).nodes(nodesQuery, Map.empty)
+  .rels(relsQuery, Map.empty).loadGraphFrame
+```
+
+In the pictures we can observe the creation of the GraphFrame and 
+
+
+<img src="../pics\spark\Analisi_3\2.PNG" width="800"><br>
+
+
+<img src="../pics\spark\Analisi_3\3.PNG" width="800"><br>
+	
+We again see as some users were writing multiple reviews in single days. 
+
+```Scala
+val count = graphFrame.vertices.orderBy("nome").groupBy($"nome", $"data_review").count
+```
+
+<img src="../pics\spark\Analisi_3\4.PNG" width="800"><br>
+
+From the output we can observe that some users were writing multiple negative reviews in a single day; for example, the user Sean wrote 5 negative reviews in a single day.
+
+```Scala
+val spammers = count.filter("count > 4")
+```
+
+<img src="../pics\spark\Analisi_3\5.PNG" width="800"><br>
+
+To understand which business were reviewd, we create a new DataFrame and join it to the ones holding data about the possible spammers.
+
+```Scala
+val df1 = graphFrame.vertices.select("id", "nome", 
+  "id_review","lunghezza_testo", "data_review",
+  "stelle_recensione", "nome_business", "id_business")
+val joined = df1.join(spammers, Seq("nome",
+  "data_review"), "inner")
+val business_saved = joined
+  .select("id_business")
+```
+
+<img src="../pics\spark\Analisi_3\6.PNG" width="800"><br>
+
+Last step of the analysis is creating a GraphFrame with data of the businesses found at the previous step.
+
+```Scala
+val nodesQuery = "MATCH (b:Business)-[r:IN_CATEGORY]
+  ->(c:Category)  return id(b) as id,b.id as id_business,
+  b.name as nome_business, b.review_count as numero_recensioni,
+  b.city as citta, b.latitude as latitudine, 
+  b.longitude as longitudine, b.stars as rating"
+val relsQuery = "MATCH (b:Business)-[r:IN_CATEGORY]->
+  (c:Category) RETURN id(b) as src, id(c) as dst"
+val graphFrame = Neo4j(sc).nodes(nodesQuery, Map.empty)
+  .rels(relsQuery, Map.empty).loadGraphFrame
+
+val df_b = graphFrame.vertices.select("nome_business",
+  "id_business", "numero_recensioni", "citta", 
+  "latitudine", "longitudine", "rating")
+val business_consider = df_b.join(business_saved, 
+  Seq("id_business"), "inner")
+val business_considered = business_consider
+  .select("id_business","nome_business", 
+  "numero_recensioni", "citta", "latitudine", "longitudine",
+  "rating", "stelle_recensione" ).distinct
+```
+
+<img src="../pics\spark\Analisi_3\7.PNG" width="800"><br>
+
+From the picture we can notice that 4 out of 5 reviews made by the user belong to different offices of the same company located nearby to each other.
+We compute the distance in kilometers between them using the geo coordinates, as done in the previous section.
+
+<img src="../pics\spark\Analisi_3\8.PNG" width="800"><br>
+
+Similarly to the first full dataset analysis, a feedback was found on Yelp: the reviews by the user Sean were reported on the website.
+
+<img src="../pics\spark\Analisi_3\9.PNG" width="800"><br>
