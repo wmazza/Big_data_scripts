@@ -1,0 +1,40 @@
+
+//SPARK
+
+import org.neo4j.spark._
+val neo = Neo4j(sc)
+
+val nodesQuery = "MATCH (u:User)-[r3:WROTE]->(w:Review) WHERE u.review_count > 30 AND u.average_stars < 1.2 return distinct(u.id) as id, u.name as nome, u.average_stars as numero_medio_stelle, u.yelping_since as data_iscr "
+val relsQuery = "MATCH (u:User)-[r3:WROTE]->(w:Review) RETURN id(u) as src, id(w) as dst"
+val graphFrame = Neo4j(sc).nodes(nodesQuery, Map.empty).rels(relsQuery, Map.empty).loadGraphFrame
+
+
+val nodesQuery = "MATCH (u:User)-[r3:WROTE]->(w:Review)-[r2:REVIEWS]->(n:Business) WHERE u.review_count > 30 AND u.average_stars < 1.2 return distinct(u.id) as id, u.name as nome, w.id as id_review, w.text_length as lunghezza_testo, w.date as data_review, w.stars as stelle_recensione, n.name as nome_business, n.id as id_business" 
+val relsQuery = "MATCH (u:User)-[r3:WROTE]->(w:Review)-[r2:REVIEWS]->(n:Business) RETURN id(u) as src, id(n) as dst"
+val graphFrame = Neo4j(sc).nodes(nodesQuery, Map.empty).rels(relsQuery, Map.empty).loadGraphFrame
+
+
+
+//graphFrame.vertices.show(false)
+
+val count = graphFrame.vertices.orderBy("nome").groupBy($"nome", $"data_review").count
+val spammers = count.filter("count > 4")
+
+val df1 = graphFrame.vertices.select("id", "nome", "id_review","lunghezza_testo", "data_review","stelle_recensione", "nome_business", "id_business")
+
+val joined = df1.join(spammers, Seq("nome", "data_review"), "inner")
+
+val business_saved = joined.select("id_business", "stelle_recensione")
+
+val nodesQuery = "MATCH (b:Business)-[r:IN_CATEGORY]->(c:Category)  return id(b) as id,b.id as id_business,  b.name as nome_business, b.review_count as numero_recensioni, b.city as citta, b.latitude as latitudine, b.longitude as longitudine, b.stars as rating"
+val relsQuery = "MATCH (b:Business)-[r:IN_CATEGORY]->(c:Category) RETURN id(b) as src, id(c) as dst"
+val graphFrame = Neo4j(sc).nodes(nodesQuery, Map.empty).rels(relsQuery, Map.empty).loadGraphFrame
+
+val df_b = graphFrame.vertices.select("nome_business", "id_business", "numero_recensioni", "citta", "latitudine", "longitudine", "rating")
+
+val business_consider = df_b.join(business_saved, Seq("id_business"), "inner")
+val business_considered = business_consider.select("id_business","nome_business", "numero_recensioni", "citta", "latitudine", "longitudine", "rating", "stelle_recensione" ).distinct
+
+
+
+
