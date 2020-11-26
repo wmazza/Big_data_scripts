@@ -350,12 +350,12 @@ val business_considered = business_consider.
 business_considered.show
 ```
 
-<img src="../pics\spark\Analisi_2\Analisi_Business.PNG" width="700"><br>
+<img src="../pics/spark/Analisi_2/Analisi_Business.PNG" width="700"><br>
 
 A partial feedback about the spammers analysis can be found on some of the reviews of the users that were flagged on Yelp.
 
 <img src="../pics\spark\Analisi_2\Peter.PNG" width="500"><br>
-<img src="../pics\spark\Analisi_2\Chris.PNG" width="500"><br>
+<img src="../pics\spark\Analisi_2\chris.PNG" width="500"><br>
 
 
 ### Seconda analisi sull'intero dataset
