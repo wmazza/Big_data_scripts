@@ -278,7 +278,7 @@ val graphFrame = Neo4j(sc).nodes(nodesQuery,
 
 We obtain a GraphFrame with only 7 users.
 
-<img src="..\pics\spark\Analisi_2\Prima_Analisi.PNG" width="500"><br>
+<img src="..\pics\spark\Analisi_2\Prima_analisi.PNG" width="500"><br>
 
 We focus the analysis on the ones with newer subscription date (highlighted in yellow). 
 
